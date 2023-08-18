@@ -11,9 +11,15 @@ def generate_launch_description():
 
   use_sim_time = launch.substitutions.LaunchConfiguration('use_sim_time')
   world = launch.substitutions.LaunchConfiguration('world')
-  robot_id = "summit"
+  robot_id = launch.substitutions.LaunchConfiguration('robot_id')
 
   ld = launch.LaunchDescription()
+
+  ld.add_action(launch.actions.DeclareLaunchArgument(
+    name='robot_id',
+    description='Identifier of the robot that will be spawned',
+    default_value='summit',
+  ))
 
   ld.add_action(launch.actions.DeclareLaunchArgument(
     name='use_sim_time',
@@ -43,22 +49,12 @@ def generate_launch_description():
     }.items(),
   ))
 
-  # Launch rviz
-  start_rviz_cmd = Node(        
-        package='rviz2',
-        executable='rviz2',
-        namespace=robot_id,
-        remappings= [('/tf', 'tf'), ('/tf_static', 'tf_static')],
-        arguments=['-d', os.path.join(get_package_share_directory('summit_xl_navigation'), 'config_rviz', "nav2.rviz")],
-        output='screen')
-  ld.add_action(start_rviz_cmd)
-
-  # Doesn't pass parameters properly
   ld.add_action(launch.actions.IncludeLaunchDescription(
     PythonLaunchDescriptionSource(
       os.path.join(get_package_share_directory('summit_xl_navigation'), 'launch', 'nav2_bringup_launch.py'),
     ), 
     launch_arguments={
+      'namespace': robot_id,
       'params_file': os.path.join(get_package_share_directory('summit_xl_navigation'), 'params', 'nav2_params.yaml') # without this line "params_file" is initialized by another action
     }.items(),
   ))
