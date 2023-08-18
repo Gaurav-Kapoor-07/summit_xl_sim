@@ -61,7 +61,7 @@ def read_params(ld : launch.LaunchDescription):
   ld.add_action(launch.actions.DeclareLaunchArgument(
     name='robot_id',
     description='Id of the robot',
-    default_value='robot',
+    default_value='summit',
   ))
 
   ld.add_action(launch.actions.DeclareLaunchArgument(
