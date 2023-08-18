@@ -45,6 +45,8 @@ def generate_launch_description():
   start_rviz_cmd = Node(        
         package='rviz2',
         executable='rviz2',
+        namespace='robot',
+        remappings= [('/tf', 'tf'), ('/tf_static', 'tf_static')],
         arguments=['-d', os.path.join(get_package_share_directory('summit_xl_navigation'), 'config_rviz', "nav2.rviz")],
         output='screen')
   ld.add_action(start_rviz_cmd)

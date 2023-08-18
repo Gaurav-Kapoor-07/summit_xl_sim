@@ -96,7 +96,7 @@ def generate_launch_description():
         executable='robot_state_publisher',
         name='robot_state_publisher',
         output='screen',
-        # remappings= [('/tf', 'tf'), ('/tf_static', 'tf_static')],
+        remappings= [('/tf', 'tf'), ('/tf_static', 'tf_static')],
         parameters=[{
             'use_sim_time': params['use_sim_time'],
             'robot_description': robot_description_param,
