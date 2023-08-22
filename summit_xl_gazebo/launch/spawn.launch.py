@@ -39,6 +39,7 @@ from ament_index_python.packages import get_package_share_directory
 def read_params(ld : launch.LaunchDescription):
   use_sim_time = launch.substitutions.LaunchConfiguration('use_sim_time')
   robot_id = launch.substitutions.LaunchConfiguration('robot_id')
+  robot_xacro = launch.substitutions.LaunchConfiguration('robot_xacro')
   namespace = launch.substitutions.LaunchConfiguration('namespace')
   pos_x = launch.substitutions.LaunchConfiguration('pos_x')
   pos_y = launch.substitutions.LaunchConfiguration('pos_y')
@@ -63,6 +64,12 @@ def read_params(ld : launch.LaunchDescription):
   ))
 
   ld.add_action(launch.actions.DeclareLaunchArgument(
+    name='robot_xacro',
+    description='Robot xacro file path for the robot model',
+    default_value=os.path.join(get_package_share_directory('summit_xl_description'), 'robots', 'summit_xls_icclab.urdf.xacro'),
+  ))
+
+  ld.add_action(launch.actions.DeclareLaunchArgument(
     name='pos_x',
     description='X position of the robot',
     default_value='0.0',
@@ -78,6 +85,7 @@ def read_params(ld : launch.LaunchDescription):
     'use_sim_time': use_sim_time,
     'namespace': namespace,
     'robot_id': robot_id,
+    'robot_xacro' : robot_xacro,
     'pos_x': pos_x,
     'pos_y': pos_y,
   }
@@ -101,6 +109,7 @@ def generate_launch_description():
     launch_arguments={
       'use_sim_time': params['use_sim_time'],
       'robot_id': params['robot_id'],
+      'robot_xacro': params['robot_xacro'],
     }.items(),
   )
 
@@ -126,8 +135,6 @@ def generate_launch_description():
     executable="spawner",
     arguments=["joint_state_broadcaster", "--controller-manager", ["/", params['namespace'], "/controller_manager"]],
   )
-
-
 
   ld.add_action(launch.actions.GroupAction(actions=[
     namespace,

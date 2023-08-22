@@ -43,6 +43,7 @@ def read_params(ld : launch.LaunchDescription):
   namespace = launch.substitutions.LaunchConfiguration('namespace')
   world_name = launch.substitutions.LaunchConfiguration('world_name')
   world = launch.substitutions.LaunchConfiguration('world')
+  robot_xacro = launch.substitutions.LaunchConfiguration('robot_xacro')
 
   ld.add_action(launch.actions.DeclareLaunchArgument(
     name='environment',
@@ -82,6 +83,12 @@ def read_params(ld : launch.LaunchDescription):
     default_value=[launch_ros.substitutions.FindPackageShare('summit_xl_gazebo'), '/worlds/', world_name, '.world']
   ))
 
+  ld.add_action(launch.actions.DeclareLaunchArgument(
+        name='robot_xacro',
+        description='Robot xacro file path for the robot model',
+        default_value=os.path.join(get_package_share_directory('summit_xl_description'), 'robots', 'summit_xls_icclab.urdf.xacro')
+  ))
+
   ret = {}
 
   if environment == 'false':
@@ -90,6 +97,7 @@ def read_params(ld : launch.LaunchDescription):
       'namespace': namespace,
       'robot_id': robot_id,
       'world': world,
+      'robot_xacro': robot_xacro,
     }
   else:
     if 'USE_SIM_TIME' in os.environ:
@@ -106,6 +114,10 @@ def read_params(ld : launch.LaunchDescription):
       ret['robot_id'] = os.environ['ROBOT_ID']
     else:
       ret['robot_id'] = robot_id
+    if 'ROBOT_XACRO' in os.environ:
+      ret['robot_xacro'] = os.environ['ROBOT_XACRO']
+    else:
+      ret['robot_xacro'] = robot_xacro
     if 'WORLD' in os.environ:
       ret['world'] = os.environ['WORLD']
     elif 'WORLD_NAME' in os.environ:
@@ -122,7 +134,6 @@ def generate_launch_description():
   ld = launch.LaunchDescription()
   summit_xl_gazebo = get_package_share_directory('summit_xl_gazebo')
   gazebo_ros = get_package_share_directory('gazebo_ros')
-
   params = read_params(ld)
 
   ld.add_action(launch.actions.IncludeLaunchDescription(
@@ -130,7 +141,7 @@ def generate_launch_description():
       os.path.join(gazebo_ros, 'launch', 'gzserver.launch.py')
     ),
     launch_arguments={
-      'verbose': 'false',
+      'verbose': 'True',
       'world': params['world'],
       'paused': 'false',
       'init': 'true',
@@ -157,6 +168,7 @@ def generate_launch_description():
       'use_sim_time': params['use_sim_time'],
       'robot_id': params['robot_id'],
       'namespace': params['namespace'],
+      'robot_xacro': params['robot_xacro'],
       'pos_x': '1.0',
       'pos_y': '-2.0',
       }.items(),

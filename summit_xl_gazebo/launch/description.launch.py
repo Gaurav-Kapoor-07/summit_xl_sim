@@ -25,15 +25,20 @@
 
 import os
 import launch
+from launch.actions import LogInfo
 import launch_ros
 from ament_index_python.packages import get_package_share_directory
 
 from robotnik_common.launch import RewrittenYaml
 
-def read_params(ld : launch.LaunchDescription):
+def generate_launch_description():
+
+    ld = launch.LaunchDescription()
+
     use_sim_time = launch.substitutions.LaunchConfiguration('use_sim_time')
     controllers_file = launch.substitutions.LaunchConfiguration('controllers_file')
     robot_id = launch.substitutions.LaunchConfiguration('robot_id')
+    robot_xacro = launch.substitutions.LaunchConfiguration('robot_xacro')
 
     # Declare the launch options
     ld.add_action(launch.actions.DeclareLaunchArgument(
@@ -55,24 +60,16 @@ def read_params(ld : launch.LaunchDescription):
         default_value='robot')
     )
 
-    # Parse the launch options
-    return {
-        'use_sim_time': use_sim_time,
-        'robot_description_path': os.path.join(get_package_share_directory('summit_xl_description'), 'robots', 'summit_xls_icclab.urdf.xacro'),
-        'robot_id': robot_id,
-        'controllers_file': controllers_file,
-    }
-
-def generate_launch_description():
-
-    ld = launch.LaunchDescription()
-
-    params = read_params(ld)
+    ld.add_action(launch.actions.DeclareLaunchArgument(
+        name='robot_xacro',
+        description='Robot xacro file path for the robot model',
+        default_value=os.path.join(get_package_share_directory('summit_xl_description'), 'robots', 'summit_xls_icclab.urdf.xacro'))
+    )
 
     config_file_rewritten = RewrittenYaml(
-        source_file=params['controllers_file'],
+        source_file=controllers_file,
         param_rewrites={},
-        root_key=[params['robot_id'],],
+        root_key=[robot_id],
         convert_types=True,
     )
 
@@ -81,9 +78,9 @@ def generate_launch_description():
             launch.substitutions.PathJoinSubstitution(
                 [launch.substitutions.FindExecutable(name="xacro")]),
             " ",
-            params['robot_description_path'],
-            " robot_id:=", params['robot_id'],
-            " robot_ns:=", params['robot_id'],
+            robot_xacro,
+            " robot_id:=", robot_id,
+            " robot_ns:=", robot_id,
             " config_controllers:=", config_file_rewritten,
         ]
     )
@@ -98,7 +95,7 @@ def generate_launch_description():
         output='screen',
         remappings= [('/tf', 'tf'), ('/tf_static', 'tf_static')],
         parameters=[{
-            'use_sim_time': params['use_sim_time'],
+            'use_sim_time': use_sim_time,
             'robot_description': robot_description_param,
             'publish_frequency': 100.0,
             'frame_prefix': "", # [params['robot_id'], '/'],
@@ -106,5 +103,6 @@ def generate_launch_description():
     )
 
     ld.add_action(robot_state_publisher)
+    ld.add_action(LogInfo(msg=["description.launch.py", " robot_description_param: \n", robot_description_content]))
 
     return ld
