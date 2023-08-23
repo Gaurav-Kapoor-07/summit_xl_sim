@@ -44,6 +44,7 @@ def read_params(ld : launch.LaunchDescription):
   world_name = launch.substitutions.LaunchConfiguration('world_name')
   world = launch.substitutions.LaunchConfiguration('world')
   robot_xacro = launch.substitutions.LaunchConfiguration('robot_xacro')
+  controllers_file = launch.substitutions.LaunchConfiguration('controllers_file')
 
   ld.add_action(launch.actions.DeclareLaunchArgument(
     name='environment',
@@ -89,6 +90,12 @@ def read_params(ld : launch.LaunchDescription):
         default_value=os.path.join(get_package_share_directory('summit_xl_description'), 'robots', 'summit_xls_icclab.urdf.xacro')
   ))
 
+  ld.add_action(launch.actions.DeclareLaunchArgument(
+        name='controllers_file',
+        description='ROS 2 controller file.',
+        default_value=[get_package_share_directory('summit_xl_gazebo'), '/config/controller.yml']
+  ))
+
   ret = {}
 
   if environment == 'false':
@@ -98,6 +105,7 @@ def read_params(ld : launch.LaunchDescription):
       'robot_id': robot_id,
       'world': world,
       'robot_xacro': robot_xacro,
+      'controllers_file': controllers_file
     }
   else:
     if 'USE_SIM_TIME' in os.environ:
@@ -118,6 +126,10 @@ def read_params(ld : launch.LaunchDescription):
       ret['robot_xacro'] = os.environ['ROBOT_XACRO']
     else:
       ret['robot_xacro'] = robot_xacro
+    if 'CONTROLLERS_FILE' in os.environ:
+      ret['controllers_file'] = os.environ['CONTROLLERS_FILE']
+    else:
+      ret['controllers_file'] = controllers_file
     if 'WORLD' in os.environ:
       ret['world'] = os.environ['WORLD']
     elif 'WORLD_NAME' in os.environ:

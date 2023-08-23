@@ -43,6 +43,7 @@ def read_params(ld : launch.LaunchDescription):
   namespace = launch.substitutions.LaunchConfiguration('namespace')
   pos_x = launch.substitutions.LaunchConfiguration('pos_x')
   pos_y = launch.substitutions.LaunchConfiguration('pos_y')
+  controllers_file = launch.substitutions.LaunchConfiguration('controllers_file')
 
   ld.add_action(launch.actions.DeclareLaunchArgument(
     name='use_sim_time',
@@ -81,6 +82,12 @@ def read_params(ld : launch.LaunchDescription):
     default_value='0.0',
   ))
 
+  ld.add_action(launch.actions.DeclareLaunchArgument(
+        name='controllers_file',
+        description='ROS 2 controller file.',
+        default_value=[get_package_share_directory('summit_xl_gazebo'), '/config/controller.yml']
+  ))
+
   ret = {
     'use_sim_time': use_sim_time,
     'namespace': namespace,
@@ -88,6 +95,7 @@ def read_params(ld : launch.LaunchDescription):
     'robot_xacro' : robot_xacro,
     'pos_x': pos_x,
     'pos_y': pos_y,
+    'controllers_file': controllers_file
   }
 
   return ret
@@ -110,6 +118,7 @@ def generate_launch_description():
       'use_sim_time': params['use_sim_time'],
       'robot_id': params['robot_id'],
       'robot_xacro': params['robot_xacro'],
+      'controllers_file': params['controllers_file']
     }.items(),
   )
 
