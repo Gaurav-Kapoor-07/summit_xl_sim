@@ -75,7 +75,7 @@ def read_params(ld : launch.LaunchDescription):
   ld.add_action(launch.actions.DeclareLaunchArgument(
     name='world_name',
     description='Name of the world to load',
-    default_value='empty',
+    default_value='demo',
   ))
 
   ld.add_action(launch.actions.DeclareLaunchArgument(
@@ -87,7 +87,7 @@ def read_params(ld : launch.LaunchDescription):
   ld.add_action(launch.actions.DeclareLaunchArgument(
         name='robot_xacro',
         description='Robot xacro file path for the robot model',
-        default_value=os.path.join(get_package_share_directory('summit_xl_description'), 'robots', 'summit_xls_icclab.urdf.xacro')
+        default_value=os.path.join(get_package_share_directory('summit_xl_description'), 'robots', 'summit_xls.urdf.xacro')
   ))
 
   ld.add_action(launch.actions.DeclareLaunchArgument(
