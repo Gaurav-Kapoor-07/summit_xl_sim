@@ -24,21 +24,65 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import os
+import re
 import launch
-from launch.actions import LogInfo
+from launch.actions import LogInfo, OpaqueFunction
 import launch_ros
 from ament_index_python.packages import get_package_share_directory
 
 from robotnik_common.launch import RewrittenYaml
 
-def generate_launch_description():
-
-    ld = launch.LaunchDescription()
+def launch_setup(context, *args, **kwargs):
 
     use_sim_time = launch.substitutions.LaunchConfiguration('use_sim_time')
     controllers_file = launch.substitutions.LaunchConfiguration('controllers_file')
     robot_id = launch.substitutions.LaunchConfiguration('robot_id')
     robot_xacro = launch.substitutions.LaunchConfiguration('robot_xacro')
+
+    config_file_rewritten = RewrittenYaml(
+        source_file=controllers_file,
+        param_rewrites={},
+        root_key=[robot_id],
+        convert_types=True,
+    )
+
+    robot_description_content = launch.substitutions.Command(
+        [
+            launch.substitutions.PathJoinSubstitution(
+                [launch.substitutions.FindExecutable(name="xacro")]),
+            " ",
+            robot_xacro,
+            " robot_id:=", robot_id,
+            " robot_ns:=", robot_id,
+            " config_controllers:=", config_file_rewritten,
+        ]
+    )
+
+    # Get rid of XML comments
+    # Workaround because of this bug: https://github.com/ros-controls/gazebo_ros2_control/issues/295
+    pattern = r'<!--(.*?)-->'
+    robot_description_param_no_comments = re.sub(pattern, '', robot_description_content.perform(context), flags=re.DOTALL)    
+
+    robot_state_publisher = launch_ros.actions.Node(
+        package='robot_state_publisher',
+        executable='robot_state_publisher',
+        name='robot_state_publisher',
+        output='screen',
+        remappings= [('/tf', 'tf'), ('/tf_static', 'tf_static')],
+        parameters=[{
+            'use_sim_time': use_sim_time,
+            'robot_description': robot_description_param_no_comments,
+            'publish_frequency': 100.0,
+            'frame_prefix': "", # [params['robot_id'], '/'],
+        }],
+    )
+
+    return [robot_state_publisher, LogInfo(msg=["description.launch.py", " robot_description_param: \n", robot_description_content])]
+
+
+def generate_launch_description():
+
+    ld = launch.LaunchDescription()  
 
     # Declare the launch options
     ld.add_action(launch.actions.DeclareLaunchArgument(
@@ -65,44 +109,12 @@ def generate_launch_description():
         description='Robot xacro file path for the robot model',
         default_value=os.path.join(get_package_share_directory('summit_xl_description'), 'robots', 'summit_xls_icclab.urdf.xacro'))
     )
-
-    config_file_rewritten = RewrittenYaml(
-        source_file=controllers_file,
-        param_rewrites={},
-        root_key=[robot_id],
-        convert_types=True,
-    )
-
-    robot_description_content = launch.substitutions.Command(
-        [
-            launch.substitutions.PathJoinSubstitution(
-                [launch.substitutions.FindExecutable(name="xacro")]),
-            " ",
-            robot_xacro,
-            " robot_id:=", robot_id,
-            " robot_ns:=", robot_id,
-            " config_controllers:=", config_file_rewritten,
-        ]
-    )
-
-    # Create parameter
-    robot_description_param = launch_ros.descriptions.ParameterValue(robot_description_content, value_type=str)
-
-    robot_state_publisher = launch_ros.actions.Node(
-        package='robot_state_publisher',
-        executable='robot_state_publisher',
-        name='robot_state_publisher',
-        output='screen',
-        remappings= [('/tf', 'tf'), ('/tf_static', 'tf_static')],
-        parameters=[{
-            'use_sim_time': use_sim_time,
-            'robot_description': robot_description_param,
-            'publish_frequency': 100.0,
-            'frame_prefix': "", # [params['robot_id'], '/'],
-        }],
-    )
-
-    ld.add_action(robot_state_publisher)
-    ld.add_action(LogInfo(msg=["description.launch.py", " robot_description_param: \n", robot_description_content]))
+    
+    ld.add_action(OpaqueFunction(function=launch_setup))
 
     return ld
+
+
+   
+
+    
