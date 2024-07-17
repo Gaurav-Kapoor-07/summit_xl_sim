@@ -26,7 +26,10 @@
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 
-  <exec_depend>gazebo_ros</exec_depend>
+  <!-- <exec_depend>gazebo_ros</exec_depend> -->
+  <depend>ros_gz_bridge</depend>
+  <depend>ros_gz_image</depend>
+  <depend>ros_gz_sim</depend>
   <exec_depend>gazebo_ros_control</exec_depend>
   <exec_depend>rb1_base_control</exec_depend>
   <exec_depend>rb1_base_description</exec_depend>

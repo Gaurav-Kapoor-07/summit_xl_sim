@@ -145,31 +145,46 @@ from launch.launch_description_sources import PythonLaunchDescriptionSource
 def generate_launch_description():
   ld = launch.LaunchDescription()
   summit_xl_gazebo = get_package_share_directory('summit_xl_gazebo')
-  gazebo_ros = get_package_share_directory('gazebo_ros')
+  # gazebo_ros = get_package_share_directory('gazebo_ros')
+  ros_gz_sim = get_package_share_directory('ros_gz_sim')
   params = read_params(ld)
 
-  ld.add_action(launch.actions.IncludeLaunchDescription(
-    PythonLaunchDescriptionSource(
-      os.path.join(gazebo_ros, 'launch', 'gzserver.launch.py')
-    ),
-    launch_arguments={
-      'verbose': 'True',
-      'world': params['world'],
-      'paused': 'false',
-      'init': 'true',
-      'factory': 'true',
-      'force_system': 'true',
-      'params_file': os.path.join(summit_xl_gazebo, 'config','gazebo.yml'),
-    }.items(),
-  ))
+  # ld.add_action(launch.actions.IncludeLaunchDescription(
+  #   PythonLaunchDescriptionSource(
+  #     os.path.join(gazebo_ros, 'launch', 'gzserver.launch.py')
+  #   ),
+  #   launch_arguments={
+  #     'verbose': 'true',
+  #     'world': params['world'],
+  #     'paused': 'false',
+  #     'init': 'true',
+  #     'factory': 'true',
+  #     'force_system': 'true',
+  #     'params_file': os.path.join(summit_xl_gazebo, 'config','gazebo.yml'),
+  #   }.items(),
+  # ))
 
   ld.add_action(launch.actions.IncludeLaunchDescription(
     PythonLaunchDescriptionSource(
-      os.path.join(gazebo_ros, 'launch', 'gzclient.launch.py')
+        os.path.join(ros_gz_sim, 'launch', 'gz_sim.launch.py')
     ),
-    launch_arguments={
-      'verbose': 'false',
-      }.items(),
+    launch_arguments={'gz_args': ['-r -s -v4 ', params['world']], 'on_exit_shutdown': 'true'}.items()
+  ))
+
+  # ld.add_action(launch.actions.IncludeLaunchDescription(
+  #   PythonLaunchDescriptionSource(
+  #     os.path.join(gazebo_ros, 'launch', 'gzclient.launch.py')
+  #   ),
+  #   launch_arguments={
+  #     'verbose': 'false',
+  #     }.items(),
+  # ))
+
+  ld.add_action(launch.actions.IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            os.path.join(ros_gz_sim, 'launch', 'gz_sim.launch.py')
+        ),
+        launch_arguments={'gz_args': '-g -v4 '}.items()
   ))
 
   ld.add_action(launch.actions.IncludeLaunchDescription(

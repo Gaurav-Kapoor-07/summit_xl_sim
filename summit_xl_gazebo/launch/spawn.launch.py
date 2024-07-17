@@ -122,18 +122,31 @@ def generate_launch_description():
     }.items(),
   )
 
+  # spawner = launch_ros.actions.Node(
+  #   package='gazebo_ros',
+  #   executable='spawn_entity.py',
+  #   arguments=[
+  #     '-entity', params['robot_id'],
+  #     '-topic', 'robot_description',
+  #     '-x', params['pos_x'],
+  #     '-y', params['pos_y'],
+  #     '-z', '0.10',
+  #   ],
+  #   output='screen',
+  # )
+
   spawner = launch_ros.actions.Node(
-    package='gazebo_ros',
-    executable='spawn_entity.py',
-    arguments=[
-      '-entity', params['robot_id'],
-      '-topic', 'robot_description',
-      '-x', params['pos_x'],
-      '-y', params['pos_y'],
-      '-z', '0.10',
-    ],
-    output='screen',
-  )
+        package='ros_gz_sim',
+        executable='create',
+        arguments=[
+            '-name', params['robot_id'],
+            '-topic', 'robot_description',
+            '-x', params['pos_x'],
+            '-y', params['pos_y'],
+            '-z', '0.10'
+        ],
+        output='screen',
+    )
   base_controller = launch_ros.actions.Node(
     package="controller_manager",
     executable="spawner",
