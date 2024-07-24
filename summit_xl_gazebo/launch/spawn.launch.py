@@ -158,12 +158,39 @@ def generate_launch_description():
     arguments=["joint_state_broadcaster", "--controller-manager", ["/", params['namespace'], "/controller_manager"]],
   )
 
+  bridge_params = os.path.join(
+        get_package_share_directory('summit_xl_gazebo'),
+        'config',
+        'turtlebot3_waffle_bridge.yaml'
+    )
+
+  start_gazebo_ros_bridge_cmd = launch_ros.actions.Node(
+        package='ros_gz_bridge',
+        executable='parameter_bridge',
+        arguments=[
+            '--ros-args',
+            '-p',
+            f'config_file:={bridge_params}',
+        ],
+        output='screen',
+    )
+
+  start_gazebo_ros_image_bridge_cmd = launch_ros.actions.Node(
+        package='ros_gz_image',
+        executable='image_bridge',
+        arguments=['/camera/image_raw'],
+        output='screen',
+    )
+
+
   ld.add_action(launch.actions.GroupAction(actions=[
     namespace,
     robot_state_publisher,
     spawner,
     base_controller,
     joint_broadcaster,
+    start_gazebo_ros_bridge_cmd,
+    start_gazebo_ros_image_bridge_cmd,
   ]))
 
   return ld
